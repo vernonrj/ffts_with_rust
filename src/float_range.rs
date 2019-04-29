@@ -14,6 +14,17 @@ impl FloatRange {
             ..self
         }
     }
+    pub fn len(&self) -> f64 { self.stop - self.start }
+    pub fn with_num_points(self, new_points: usize) -> Self {
+        let new_step = self.len() / new_points as f64;
+        FloatRange {
+            step: new_step,
+            ..self
+        }
+    }
+    pub fn sample_rate(&self) -> f64 {
+        1.0 / self.step
+    }
 }
 
 impl<T> From<Range<T>> for FloatRange
