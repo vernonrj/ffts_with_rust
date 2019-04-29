@@ -1,67 +1,77 @@
-use std::ops::Range;
+use std::ops::{Range, RangeBounds, Bound};
 
+/**
+ * A range with a step
+ */
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
-pub struct FloatRange {
+pub struct StepRange {
     pub start: f64,
-    pub stop: f64,
+    pub end: f64,
     pub step: f64,
 }
 
-impl FloatRange {
-    pub fn with_step(self, new_step: f64) -> Self {
-        FloatRange {
-            step: new_step,
-            ..self
-        }
+impl RangeBounds<f64> for StepRange {
+    fn start_bound(&self) -> Bound<&f64> {
+        Bound::Included(&self.start)
     }
-    pub fn len(&self) -> f64 { self.stop - self.start }
-    pub fn with_num_points(self, new_points: usize) -> Self {
-        let new_step = self.len() / new_points as f64;
-        FloatRange {
-            step: new_step,
-            ..self
-        }
-    }
-    pub fn sample_rate(&self) -> f64 {
-        1.0 / self.step
+    fn end_bound(&self) -> Bound<&f64> {
+        Bound::Excluded(&self.end)
     }
 }
 
-impl<T> From<Range<T>> for FloatRange
+impl StepRange {
+    /// New range with a new step
+    pub fn with_step(self, new_step: f64) -> Self {
+        StepRange {
+            step: new_step,
+            ..self
+        }
+    }
+    /// New range with an adjusted step to contain `num_points`
+    pub fn with_num_points(self, new_points: usize) -> Self {
+        let new_step = (self.end - self.start) / new_points as f64;
+        StepRange {
+            step: new_step,
+            ..self
+        }
+    }
+}
+
+impl<T> From<Range<T>> for StepRange
     where T: Into<f64>
 {
     fn from(r: Range<T>) -> Self {
-        FloatRange {
+        StepRange {
             start: r.start.into(),
-            stop: r.end.into(),
+            end: r.end.into(),
             step: 1.0,
         }
     }
 }
 
-impl IntoIterator for FloatRange {
+impl IntoIterator for StepRange {
     type Item = f64;
-    type IntoIter = FloatRangeIter;
+    type IntoIter = StepRangeIter;
     fn into_iter(self) -> Self::IntoIter {
-        FloatRangeIter {
+        StepRangeIter {
             current: self.start,
-            stop: self.stop,
+            end: self.end,
             step: self.step,
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FloatRangeIter {
+pub struct StepRangeIter {
     current: f64,
-    stop: f64,
+    end: f64,
     step: f64,
 }
 
-impl Iterator for FloatRangeIter {
+impl Iterator for StepRangeIter {
     type Item = f64;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current > self.stop {
+        if self.current > self.end {
             None
         } else {
             let next = self.current;

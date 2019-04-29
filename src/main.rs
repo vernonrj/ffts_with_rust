@@ -1,8 +1,8 @@
-mod float_range;
+mod step_range;
 mod generate;
 mod signals;
 
-use crate::float_range::FloatRange;
+use crate::step_range::StepRange;
 
 use clap::{App, Arg};
 use gnuplot::{AxesCommon, Figure};
@@ -32,7 +32,7 @@ fn main() {
         .get_matches();
     let sample_rate: f64 = matches.value_of("sample_rate").unwrap().parse().unwrap();
     let time: f64 = matches.value_of("time").unwrap().parse().unwrap();
-    let range = FloatRange::from(0.0..time).with_step(1.0 / sample_rate);
+    let range = StepRange::from(0.0..time).with_step(1.0 / sample_rate);
     let mut fg = Figure::new();
     // choose which signal we're going to use based on user input
     let signals = match matches.value_of("signal") {
@@ -59,8 +59,8 @@ fn main() {
         .lines(range, trace.clone().into_iter().map(|c| c.re), &[]);
     // Convert trace to frequency domain
     let output = fft(trace);
-    let sample_rate = range.sample_rate();
-    let x_axis = FloatRange { start: 0.0, stop: sample_rate/2.0, step: 1.0 }
+    let sample_rate = 1.0 / range.step;
+    let x_axis = StepRange::from(0.0..sample_rate/2.0)
         .with_num_points(output.len());
     // plot the frequency-domain signal
     fg.axes2d()
