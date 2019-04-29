@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 gnuplot = "0.0.31"
+num-traits = "0.2"
+num-complex = "0.2"
+rustfft = "3.0"
