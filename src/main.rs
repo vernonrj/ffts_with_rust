@@ -11,9 +11,18 @@ use rustfft::FFTplanner;
 
 fn main() {
     let matches = App::new("fft_pipeline")
-        .arg(Arg::with_name("fft")
-             .long("fft")
-             .help("generate an fft"))
+        .arg(Arg::with_name("sample_rate")
+             .long("sample_rate")
+             .takes_value(true)
+             .default_value("1e3")
+             .validator(|value| value.parse::<f64>().map(|_| ()).map_err(|e| e.to_string()))
+             .help("Sample Rate to use"))
+        .arg(Arg::with_name("time")
+             .long("time")
+             .takes_value(true)
+             .default_value("1.0")
+             .validator(|value| value.parse::<f64>().map(|_| ()).map_err(|e| e.to_string()))
+             .help("Amount of time to use"))
         .arg(Arg::with_name("signal")
              .takes_value(true)
              .required(true)
@@ -36,7 +45,9 @@ fn main() {
         Some(e) => panic!("unknown option: {}", e),
         None => panic!("no signal given"),
     };
-    let range = FloatRange::from(0..1).with_step(1e-3);
+    let sample_rate: f64 = matches.value_of("sample_rate").unwrap().parse().unwrap();
+    let time: f64 = matches.value_of("time").unwrap().parse().unwrap();
+    let range = FloatRange::from(0.0..time).with_step(1.0 / sample_rate);
     let trace: Vec<Complex<f64>> = generate::trace(signals, range).collect();
     let mut fg = Figure::new();
     fg.axes2d()
