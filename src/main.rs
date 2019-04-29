@@ -60,7 +60,7 @@ fn main() {
     // Convert trace to frequency domain
     let output = fft(trace);
     let sample_rate = 1.0 / range.step;
-    let x_axis = StepRange::from(0.0..sample_rate/2.0)
+    let x_axis = StepRange::<f64>::from(0.0..sample_rate/2.0)
         .with_num_points(output.len());
     // plot the frequency-domain signal
     fg.axes2d()
