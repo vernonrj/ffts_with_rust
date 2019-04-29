@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+use std::ops::{Bound, RangeBounds};
 
 use crate::generate::Generator;
 use num_complex::Complex;
@@ -23,6 +24,47 @@ impl Sum {
 impl Generator for Sum {
     fn output(&self, time: f64) -> Complex<f64> {
         self.signals.iter().map(|s| s.output(time.clone())).sum::<Complex<f64>>()
+    }
+}
+
+/**
+ * Clip in a range
+ */
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct Clip<G: Generator, R: RangeBounds<f64>> {
+    pub range: R,
+    pub gen: G,
+}
+
+impl<G, R> Clip<G, R>
+    where G: Generator,
+          R: RangeBounds<f64>,
+{
+    pub fn new(gen: G, range: R) -> Self {
+        Clip { range, gen, }
+    }
+}
+
+impl<G, R> Generator for Clip<G, R> 
+    where G: Generator,
+          R: RangeBounds<f64>,
+{
+    fn output(&self, time: f64) -> Complex<f64> {
+        let unclipped: Complex<f64> = self.gen.output(time);
+        let (mag, phase) = unclipped.to_polar();
+        let mag = match self.range.start_bound() {
+            Bound::Unbounded => mag,
+            Bound::Excluded(&bnd) if mag <= bnd => bnd,
+            Bound::Included(&bnd) if mag < bnd => bnd,
+            _ => mag,
+        };
+        let mag = match self.range.end_bound() {
+            Bound::Unbounded => mag,
+            Bound::Excluded(&bnd) if mag >= bnd => bnd,
+            Bound::Included(&bnd) if mag > bnd => bnd,
+            _ => mag,
+        };
+        Complex::from_polar(&mag, &phase)
     }
 }
 
