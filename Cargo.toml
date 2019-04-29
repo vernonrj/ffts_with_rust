@@ -1,0 +1,8 @@
+[package]
+name = "fft_pipeline"
+version = "0.1.0"
+authors = ["Vernon Jones <vernonrjones@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+gnuplot = "0.0.31"
